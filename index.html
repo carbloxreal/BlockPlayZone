@@ -19,23 +19,31 @@
       font-weight:bold;
     }
 
-    .container{
-      max-width:800px;
-      margin:auto;
-      padding:20px;
+    .layout{
+      display:flex;
+    }
+
+    .left, .right{
+      width:25%;
+      padding:10px;
+    }
+
+    .center{
+      width:50%;
+      padding:10px;
     }
 
     .card{
       background:#111b2e;
-      padding:20px;
+      padding:15px;
       border-radius:12px;
-      margin-top:20px;
+      margin-top:10px;
     }
 
-    input{
+    input, textarea{
       width:100%;
-      padding:10px;
-      margin:5px 0;
+      padding:8px;
+      margin-top:5px;
       border:none;
       border-radius:6px;
     }
@@ -44,55 +52,38 @@
       background:#3b82f6;
       color:white;
       border:none;
-      padding:10px 15px;
+      padding:8px 12px;
       border-radius:8px;
       cursor:pointer;
-      margin-top:10px;
+      margin-top:8px;
     }
 
     button:hover{
       background:#2563eb;
     }
 
-    .hidden{
-      display:none;
-    }
-
-    .settingsIcon{
-      position:absolute;
-      top:15px;
-      right:15px;
-      font-size:22px;
-      cursor:pointer;
-    }
-
-    .settingsMenu{
-      position:absolute;
-      top:50px;
-      right:15px;
-      background:#111b2e;
-      padding:10px;
-      border-radius:10px;
-      display:none;
-      width:180px;
-    }
-
-    .settingsMenu button{
-      width:100%;
-      margin-top:5px;
-    }
+    .hidden{display:none;}
 
     .badge{
       display:inline-block;
       background:#1e293b;
-      padding:5px 10px;
+      padding:5px 8px;
       border-radius:8px;
       margin:3px;
-      font-size:14px;
+      font-size:13px;
     }
 
-    .badgeBox{
-      margin-top:15px;
+    .group{
+      background:#1e293b;
+      padding:8px;
+      border-radius:8px;
+      margin-top:5px;
+      cursor:pointer;
+    }
+
+    .small{
+      font-size:13px;
+      opacity:0.8;
     }
   </style>
 </head>
@@ -103,59 +94,80 @@
   🎮 BlockPlayZone
 </div>
 
-<div class="container">
+<!-- LOGIN -->
+<div id="loginPage" class="card" style="max-width:400px;margin:auto;margin-top:40px;">
+  <h2>Login</h2>
+  <input id="loginUser" placeholder="Username">
+  <input id="loginPass" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <button onclick="showSignup()">Sign Up</button>
+  <p id="msg"></p>
+</div>
 
-  <!-- LOGIN -->
-  <div id="loginPage" class="card">
+<!-- SIGNUP -->
+<div id="signupPage" class="card hidden" style="max-width:400px;margin:auto;margin-top:40px;">
+  <h2>Sign Up</h2>
+  <input id="signupUser" placeholder="Username">
+  <input id="signupPass" type="password" placeholder="Password">
+  <button onclick="signup()">Create</button>
+  <button onclick="showLogin()">Back</button>
+  <p id="signupMsg"></p>
+</div>
 
-    <h2>Login</h2>
+<!-- HOME -->
+<div id="homePage" class="hidden">
 
-    <input id="loginUser" placeholder="Username">
-    <input id="loginPass" type="password" placeholder="Password">
+  <div class="layout">
 
-    <button onclick="login()">Login</button>
-    <button onclick="showSignup()">Go to Sign Up</button>
+    <!-- LEFT: PROFILE -->
+    <div class="left">
 
-    <p id="loginMsg"></p>
+      <div class="card">
+        <h3>👤 Profile</h3>
+        <p id="username"></p>
 
-  </div>
+        <p class="small">Bio:</p>
+        <p id="bioText"></p>
 
-  <!-- SIGNUP -->
-  <div id="signupPage" class="card hidden">
+        <textarea id="bioInput" placeholder="Write your bio..."></textarea>
+        <button onclick="saveBio()">Save Bio</button>
 
-    <h2>Sign Up</h2>
-
-    <input id="signupUser" placeholder="Username">
-    <input id="signupPass" type="password" placeholder="Password">
-
-    <button onclick="signup()">Create Account</button>
-    <button onclick="showLogin()">Back to Login</button>
-
-    <p id="signupMsg"></p>
-
-  </div>
-
-  <!-- HOME -->
-  <div id="homePage" class="hidden">
-
-    <div class="settingsIcon" onclick="toggleSettings()">⚙️</div>
-
-    <div class="settingsMenu" id="settingsMenu">
-
-      <button onclick="logout()">Logout</button>
+        <div id="badges"></div>
+      </div>
 
     </div>
 
-    <div class="card">
+    <!-- CENTER -->
+    <div class="center">
 
-      <h2>
-        Welcome,
-        <span id="userDisplay"></span>
-      </h2>
+      <div class="card">
+        <h3>Welcome to BlockPlayZone</h3>
+        <p>New social update system is live 🔥</p>
+      </div>
 
-      <p>You are now inside BlockPlayZone.</p>
+      <div class="card">
+        <h3>Rules</h3>
+        <p class="small">
+          • No inappropriate names or content<br>
+          • No harmful or unsafe behavior<br>
+          • Respect other players<br>
+          • Keep groups safe and friendly
+        </p>
+      </div>
 
-      <div class="badgeBox" id="badgeBox"></div>
+    </div>
+
+    <!-- RIGHT: GROUPS -->
+    <div class="right">
+
+      <div class="card">
+        <h3>👥 Groups</h3>
+
+        <div class="group">BPZ Developers</div>
+        <div class="group">Early Testers</div>
+        <div class="group">Creators Club</div>
+
+      </div>
 
     </div>
 
@@ -165,196 +177,101 @@
 
 <script>
 
-/* CURRENT USER */
+let users = JSON.parse(localStorage.getItem("bpz_users") || "{}");
 let currentUser = localStorage.getItem("bpz_currentUser");
 
-/* BADGES SYSTEM */
-let userBadges = {
+let bios = JSON.parse(localStorage.getItem("bpz_bios") || "{}");
 
+/* BADGES */
+let badges = {
   "BlockPlayZoneOwner": [
     "👑 OWNER",
     "🛠️ DEV",
     "⭐ VERIFIED",
-    "🎮 TESTER",
-    "🔥 EARLY USER",
-    "🧱 BPZ MEMBER"
+    "🛡️ ADMIN"
   ]
-
 };
-
-/* GET USERS */
-function getUsers(){
-
-  let data = localStorage.getItem("bpz_users");
-
-  if(!data) return {};
-
-  try{
-    return JSON.parse(data);
-  }
-  catch(e){
-    return {};
-  }
-
-}
-
-/* SAVE USERS */
-function saveUsers(users){
-
-  localStorage.setItem(
-    "bpz_users",
-    JSON.stringify(users)
-  );
-
-}
 
 /* SIGNUP */
 function signup(){
-
-  let users = getUsers();
-
-  let u = document.getElementById("signupUser").value.trim();
-  let p = document.getElementById("signupPass").value.trim();
+  let u = signupUser.value;
+  let p = signupPass.value;
 
   if(!u || !p){
-
-    document.getElementById("signupMsg").innerText =
-    "Fill all fields!";
-
+    signupMsg.innerText = "Fill all fields!";
     return;
-
-  }
-
-  if(users[u]){
-
-    document.getElementById("signupMsg").innerText =
-    "User already exists!";
-
-    return;
-
   }
 
   users[u] = p;
+  localStorage.setItem("bpz_users", JSON.stringify(users));
 
-  saveUsers(users);
-
-  document.getElementById("signupMsg").innerText =
-  "Account created! Now login.";
-
+  signupMsg.innerText = "Account created!";
 }
 
 /* LOGIN */
 function login(){
-
-  let users = getUsers();
-
-  let u = document.getElementById("loginUser").value.trim();
-  let p = document.getElementById("loginPass").value.trim();
+  let u = loginUser.value;
+  let p = loginPass.value;
 
   if(users[u] && users[u] === p){
-
     localStorage.setItem("bpz_currentUser", u);
-
     currentUser = u;
-
     loadHome();
-
+  } else {
+    msg.innerText = "Wrong login";
   }
-  else{
-
-    document.getElementById("loginMsg").innerText =
-    "Wrong username or password";
-
-  }
-
 }
 
-/* LOAD HOME */
+/* HOME */
 function loadHome(){
+  loginPage.classList.add("hidden");
+  signupPage.classList.add("hidden");
+  homePage.classList.remove("hidden");
 
-  document.getElementById("loginPage").classList.add("hidden");
+  username.innerText = currentUser;
 
-  document.getElementById("signupPage").classList.add("hidden");
-
-  document.getElementById("homePage").classList.remove("hidden");
-
-  document.getElementById("userDisplay").innerText =
-  currentUser;
+  bioText.innerText = bios[currentUser] || "No bio yet";
 
   loadBadges();
-
 }
 
-/* LOAD BADGES */
+/* BADGES */
 function loadBadges(){
+  badgesDiv.innerHTML = "";
 
-  let badgeBox = document.getElementById("badgeBox");
+  let uBadges = badges[currentUser];
 
-  badgeBox.innerHTML = "";
-
-  let badges = userBadges[currentUser];
-
-  if(badges){
-
-    badges.forEach(function(badge){
-
-      let div = document.createElement("div");
-
-      div.className = "badge";
-
-      div.innerText = badge;
-
-      badgeBox.appendChild(div);
-
+  if(uBadges){
+    uBadges.forEach(b=>{
+      let d = document.createElement("div");
+      d.className = "badge";
+      d.innerText = b;
+      badgesDiv.appendChild(d);
     });
-
   }
-
 }
 
-/* LOGOUT */
-function logout(){
-
-  localStorage.removeItem("bpz_currentUser");
-
-  location.reload();
-
+/* BIO */
+function saveBio(){
+  bios[currentUser] = bioInput.value;
+  localStorage.setItem("bpz_bios", JSON.stringify(bios));
+  bioText.innerText = bioInput.value;
 }
 
 /* NAV */
 function showSignup(){
-
-  document.getElementById("loginPage").classList.add("hidden");
-
-  document.getElementById("signupPage").classList.remove("hidden");
-
+  loginPage.classList.add("hidden");
+  signupPage.classList.remove("hidden");
 }
 
 function showLogin(){
-
-  document.getElementById("signupPage").classList.add("hidden");
-
-  document.getElementById("loginPage").classList.remove("hidden");
-
-}
-
-/* SETTINGS */
-function toggleSettings(){
-
-  let menu = document.getElementById("settingsMenu");
-
-  menu.style.display =
-  menu.style.display === "block"
-  ? "none"
-  : "block";
-
+  signupPage.classList.add("hidden");
+  loginPage.classList.remove("hidden");
 }
 
 /* AUTO LOGIN */
 if(currentUser){
-
   loadHome();
-
 }
 
 </script>
